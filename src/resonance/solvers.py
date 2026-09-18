@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from src.resonance.manifold import ConceptualEmbedding, Perspective
+from src.tools.web_curator import fetch_ground_truth
 
 
 # ---------------------------------------------------------------------------
@@ -55,6 +56,10 @@ class Projection:
 # ---------------------------------------------------------------------------
 
 SOLVER_PROMPT_TEMPLATE = """You are operating under a strict single-perspective constraint.
+
+{ground_truth}
+
+STRICT GROUNDING RULE: You MUST anchor your analysis in the real-time ground truth above. You are FORBIDDEN from hallucinating deprecated APIs, non-existent libraries, or physics that contradict the curated search results. If a fact from the ground truth contradicts your training data, the ground truth wins.
 
 PROBLEM:
 {problem}
@@ -93,6 +98,10 @@ async def _solve_one(
 ) -> Projection:
     """Run a single eigen-solver instance for one perspective."""
 
+    # Fetch perspective-specific ground truth
+    search_query = f"{perspective.name} {problem[:80]}"
+    ground_truth = await fetch_ground_truth(search_query, limit=3)
+
     prompt = SOLVER_PROMPT_TEMPLATE.format(
         problem=problem,
         domain=embedding.domain,
@@ -101,6 +110,7 @@ async def _solve_one(
         info_gradient=embedding.info_gradient,
         perspective_name=perspective.name,
         perspective_directive=perspective.directive,
+        ground_truth=ground_truth,
     )
 
     result = await session_manager.submit(prompt, timeout=timeout)

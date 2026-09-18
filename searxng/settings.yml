@@ -1,0 +1,41 @@
+use_default_settings: true
+
+general:
+  instance_name: "LeoAI Ground Truth Engine"
+  debug: false
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "en"
+  formats:
+    - html
+    - json
+
+server:
+  secret_key: "leoai-r2f-ground-truth-2026"
+  bind_address: "0.0.0.0"
+  port: 8080
+  limiter: false
+
+engines:
+  - name: google
+    engine: google
+    shortcut: g
+    disabled: false
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+    disabled: false
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: wp
+    disabled: false
+  - name: github
+    engine: github
+    shortcut: gh
+    disabled: false
+  - name: arxiv
+    engine: arxiv
+    shortcut: ar
+    disabled: false

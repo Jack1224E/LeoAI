@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from src.config import STATE_DIR, resolve_model
+from src.tools.web_curator import fetch_ground_truth
 
 
 # ---------------------------------------------------------------------------
@@ -108,6 +109,8 @@ DEFAULT_PERSPECTIVES: List[Dict[str, str]] = [
 EMBEDDING_PROMPT_TEMPLATE = """Analyze the following problem and extract exactly four conceptual dimensions.
 Respond ONLY with valid JSON — no markdown fences, no commentary.
 
+{ground_truth}
+
 Problem: {problem}
 
 Output format:
@@ -131,7 +134,11 @@ async def embed_problem(
 ) -> ConceptualEmbedding:
     """Prompt the LLM for a 4D conceptual embedding of the problem."""
 
-    prompt = EMBEDDING_PROMPT_TEMPLATE.format(problem=problem)
+    # Fetch real-time ground truth from SearXNG before embedding
+    ground_truth = await fetch_ground_truth(problem[:120], limit=5)
+    print(f"  -> Ground Truth fetched ({len(ground_truth)} chars)")
+
+    prompt = EMBEDDING_PROMPT_TEMPLATE.format(problem=problem, ground_truth=ground_truth)
     result = await session_manager.submit(prompt, timeout=60)
     raw = result.response
 
